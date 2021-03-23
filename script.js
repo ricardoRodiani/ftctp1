@@ -8,6 +8,14 @@ try {
     let iniciais = iniciaisFinais[0].trim().split(" ");
     let finais = iniciaisFinais[1].trim().split(" ");
     let palavra = lines.pop().trim().split(":").pop();
+    let transicoes = lines
+        .map((linha) => linha.split(" "))
+        .map((elemento) =>
+            elemento.filter((elemento, indice, proprio) => {
+                return indice != 2;
+            })
+        );
+    console.log(transicoes);
     let alfabeto = lines
         .map((linha) => linha.split(" "))
         .map((elemento) =>
@@ -32,22 +40,28 @@ try {
         }
     });
     let todos = [].concat(iniciais, outros, finais);
-    console.log(alfabeto);
-    console.log(outros);
-    console.log(iniciais);
-    console.log(finais);
-    console.log(todos);
-    const afd = new Automato(todos);
+    // console.log(alfabeto);
+    // console.log(outros);
+    // console.log(iniciais);
+    // console.log(finais);
+    // console.log(todos);
+    // const afd = new Automato(iniciais, outros, finais);
+    // afd.gerarDot();
 } catch (err) {
     console.error(err);
 }
 
 function Automato(iniciais, outros, finais) {
-    this.estadosIniciais = iniciais;
-    this.estadosFinais = finais;
-    this.estadosOutros = outros;
+    this._estadosIniciais = iniciais;
+    this._estadosFinais = finais;
+    this._estadosOutros = outros;
     this.gerarDot = function () {
-        let str = "";
+        // função para criar um novo arquivo
+        let teste = "teste";
+        fs.writeFile("dot/newfile.txt", teste, function (err) {
+            if (err) throw err;
+            console.log("Arquivo dot criado com sucesso.");
+        });
     };
 }
 
