@@ -3,25 +3,36 @@ const fs = require("fs");
 try {
     // read contents of the file
     const data = fs.readFileSync("entrada.txt", "UTF-8");
-
-    // splita o conteudo de cada linha transformando num objeto
     const lines = data.split(/\r?\n/);
-    // const array = [];
-    // lines.forEach((line) => {
-    //     const i = line.split(" ");
-    //     array.push(i);
-    // });
-    // console.log(array);
-    // let iniciasFinais = array[0];
-    // console.log(iniciasFinais);
-    let primeiraLinha = lines.shift().split(";");
-    let palavra = lines.pop().split(":").pop();
-    console.log(primeiraLinha, palavra, lines);
+    let iniciaisFinais = lines.shift().split(";");
+    let iniciais = iniciaisFinais[0].trim().split(" ");
+    let finais = iniciaisFinais[1].trim().split(" ");
+    let palavra = lines.pop().trim().split(":").pop();
+    let outros = lines
+        .map((linha) => linha.split(" "))
+        .map((elemento) =>
+            elemento.filter((elemento, indice, proprio) => {
+                return indice == 0 || indice == proprio.length - 1;
+            })
+        );
+    outros = [].concat.apply([], outros);
+    outros = outros.filter(dadosUnicos);
+    outros = outros.filter((x) => {
+        if (!(iniciais.includes(x) || finais.includes(x))) {
+            return x;
+        }
+    });
+    let todos = [].concat(iniciais, outros, finais);
+    console.log(outros);
+    console.log(iniciais);
+    console.log(finais);
+    console.log(todos);
 } catch (err) {
     console.error(err);
 }
 
-function Estado(nome, tipo) {
-    this.nome = nome;
-    this.tipo = tipo;
+function Automato(todos) {}
+
+function dadosUnicos(elemento, indice, self) {
+    return self.indexOf(elemento) === indice;
 }
