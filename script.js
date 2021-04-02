@@ -1,14 +1,14 @@
 const fs = require("fs");
 const { spawnSync } = require("child_process");
-
 try {
-    // read contents of the file
+    // le o conteudo do arquivo txt de forma sincrona
     const data = fs.readFileSync("entrada.txt", "UTF-8");
     const lines = data.split(/\r?\n/);
     let iniciaisFinais = lines.shift().split(";");
     let iniciais = iniciaisFinais[0].trim().split(" ");
     let finais = iniciaisFinais[1].trim().split(" ");
-    let palavra = lines.pop().trim().split(":").pop();
+    let palavra = lines.pop().trim().split(":").pop().trim();
+    // gera um novo array, sem o caracter ">", novo array = ['inicial', 'simbolo', 'destino']
     let transicoes = lines
         .map((linha) => linha.split(" "))
         .map((elemento) =>
@@ -19,22 +19,11 @@ try {
     let objTransicoes = transicoes.map((linhaArray) => {
         return arrayParaObjeto(...linhaArray);
     });
-    console.log(objTransicoes);
     let objAutomato = deepMerge(...objTransicoes);
-    console.log(objAutomato);
     let transicoesDot = transicoes.map((elemento) => {
         return toDot(elemento);
     });
-    console.log(transicoesDot);
-    let alfabeto = lines
-        .map((linha) => linha.split(" "))
-        .map((elemento) =>
-            elemento.filter((elemento, indice, proprio) => {
-                return indice == 1;
-            })
-        );
-    alfabeto = [].concat.apply([], alfabeto);
-    alfabeto = alfabeto.filter(dadosUnicos);
+    // console.log(transicoesDot);
     let outros = lines
         .map((linha) => linha.split(" "))
         .map((elemento) =>
@@ -42,18 +31,35 @@ try {
                 return indice == 0 || indice == proprio.length - 1;
             })
         );
+    // planifica array
     outros = [].concat.apply([], outros);
+    // retorna um array somente com dados unicos
     outros = outros.filter(dadosUnicos);
-    outros = outros.filter((x) => {
-        if (!(iniciais.includes(x) || finais.includes(x))) {
-            return x;
+    outros = outros.filter((elemento) => {
+        if (!(iniciais.includes(elemento) || finais.includes(elemento))) {
+            return elemento;
         }
     });
-    let todos = [].concat(iniciais, outros, finais);
     let automato = constroiAutomato(transicoesDot, iniciais, outros, finais);
-    escreveArquivoDot("automato", automato);
-    executaDot("automato");
-    consumirPalavra("s0", "aab", objAutomato);
+    escreveArquivoDot("automato", 0, automato);
+    executaDot("automato", 0);
+    let novasTransicoes = consumirPalavra(iniciais[0], palavra, objAutomato);
+    // console.log(novasTransicoes);
+    novasTransicoes = novasTransicoes.map((str) => {
+        return addStrModificada(transicoesDot, str);
+    });
+    // console.log(novasTransicoes);
+    for (let i = 0; i < novasTransicoes.length; i++) {
+        automato = constroiAutomato(
+            novasTransicoes[i],
+            iniciais,
+            outros,
+            finais
+        );
+        escreveArquivoDot("automato", i, automato);
+        executaDot("automato", i);
+    }
+    fazGif();
 } catch (err) {
     console.error(err);
 }
@@ -75,21 +81,28 @@ function constroiAutomato(transicoesDot, iniciais, outros, finais) {
     let str = `digraph finite_state_machine {
     rankdir=LR;
     size="8,5"
-    node [shape = none]; "";
-    node [shape = circle] ${iniciais.join(" ") + " " + outros.join(" ")};
-    node [shape = doublecircle] ${finais.join(" ")};
-    "" -> ${iniciais.join(" ")}
-    ${transicoesDot.join("\n\t")}
+    subgraph cluster{
+        label=""
+        node [shape = point]; "";
+        node [shape = circle] ${iniciais.join(" ") + " " + outros.join(" ")};
+        node [shape = doublecircle] ${finais.join(" ")};
+        "" -> ${iniciais.join(" ")}
+        ${transicoesDot.join("\n")}
+    }
 }`;
     return str;
 }
 
-function escreveArquivoDot(str, automato) {
-    fs.writeFileSync(`${str}.dot`, automato);
+function escreveArquivoDot(str, indice, automato) {
+    fs.writeFileSync(`./automato/${str}${indice + 1}.dot`, automato);
 }
 
-function executaDot(str) {
-    spawnSync("dot", ["-Tpng", "automato.dot", "-o", "automato.png"]);
+function executaDot(str, indice) {
+    spawnSync(
+        "dot",
+        ["-Tpng", `${str}${indice + 1}.dot`, "-o", `${str}${indice + 1}.png`],
+        { cwd: "./automato" }
+    );
 }
 
 function arrayParaObjeto(estado1, simbolo, estado2) {
@@ -100,6 +113,14 @@ function arrayParaObjeto(estado1, simbolo, estado2) {
     };
 }
 
+/*
+ * @params(n objetos, usando o operador spread '...')
+ * a ideia eh juntar os arrays como um array unico
+ * sem sobrescrever nenhum propriedade ja existente
+ * caso a propriedade exista adicionamos esse novo valor num array
+ * se nao existir ela é criada
+ * retorna um novo objeto que representa os estados e suas transicoes
+ */
 function deepMerge(...args) {
     let objFinal = {};
     let merger = (obj) => {
@@ -128,10 +149,17 @@ function deepMerge(...args) {
 
     return objFinal;
 }
-
+/*
+ * @params(objeto:estadoAtual, string: palavra, objeto: objAutomato)
+ * Consome recusivamente a palavra sempre pegando o primeiro caracter
+ * retorna a string modificada que reflete a transição sobre o mesmo
+ * para quando a string for totalmente consumida
+ * unshift adiciona o elemento sempre no inicio do vetor
+ * ja que a recursao retorna o ultimo elemento gerado para os primeiros
+ */
 function consumirPalavra(estadoAtual, palavra, objAutomato) {
-    if (palavra == "") {
-        return "";
+    if (palavra === "") {
+        return [];
     } else {
         let primeiroChar = palavra.charAt(0);
         let strRestante = palavra.substring(1);
@@ -140,9 +168,42 @@ function consumirPalavra(estadoAtual, palavra, objAutomato) {
         if (transicoesPossiveis.includes(primeiroChar)) {
             estadoDestino = objAutomato[estadoAtual][primeiroChar];
         }
-        console.log(
-            `${estadoAtual} -> ${estadoDestino} [ label = "${primeiroChar}" style = bold color = red]`
+        const arr = consumirPalavra(estadoDestino, strRestante, objAutomato);
+        // como estamos usando recursao, eh necessario adicionar o valor sempre no inicio do array
+        // para que a ordem de transicao seja mantida
+        arr.unshift(
+            `${estadoAtual} -> ${estadoDestino} [ label = "${primeiroChar}" style = bold color = red `
         );
-        consumirPalavra(estadoDestino, strRestante, objAutomato);
+        return arr;
     }
+}
+
+function addStrModificada(transicoesDot, strModificada) {
+    let matchStr = strModificada
+        .substring(0, strModificada.indexOf("style"))
+        .trim();
+    return transicoesDot.map((linha) => {
+        return linha.replace(matchStr, strModificada);
+    });
+}
+
+function fazGif() {
+    spawnSync(
+        "convert",
+        [
+            "-delay",
+            "100",
+            "-loop",
+            "0",
+            "-dispose",
+            "previous",
+            "automato*.png",
+            "automato.gif",
+        ],
+        { cwd: "./automato" }
+    );
+}
+
+function legendaAtual(novasTransicoes) {
+    novasTransicoes.map((transicao) => {});
 }

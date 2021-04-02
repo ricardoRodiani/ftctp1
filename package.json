@@ -1,0 +1,22 @@
+{
+    "name": "ftctp1",
+    "version": "1.0.0",
+    "description": "AFD/AFN animator",
+    "main": "script.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "mkdir -p automato && rm -f rm ./automato/* && node script.js",
+        "clean": "rm -rf ./automato"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ricardoRodiani/tp1FTC.git"
+    },
+    "keywords": [],
+    "author": "Ricardo Rodiani da Silva",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/ricardoRodiani/tp1FTC/issues"
+    },
+    "homepage": "https://github.com/ricardoRodiani/tp1FTC#readme"
+}
