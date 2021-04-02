@@ -40,10 +40,18 @@ try {
             return elemento;
         }
     });
-    let automato = constroiAutomato(transicoesDot, iniciais, outros, finais);
+    let automato = constroiAutomato(
+        transicoesDot,
+        iniciais,
+        outros,
+        finais,
+        ""
+    );
     escreveArquivoDot("automato", 0, automato);
     executaDot("automato", 0);
     let novasTransicoes = consumirPalavra(iniciais[0], palavra, objAutomato);
+    let lgnd = legendas(iniciais[0], palavra, objAutomato);
+    // console.log(lgnd);
     // console.log(novasTransicoes);
     novasTransicoes = novasTransicoes.map((str) => {
         return addStrModificada(transicoesDot, str);
@@ -54,7 +62,8 @@ try {
             novasTransicoes[i],
             iniciais,
             outros,
-            finais
+            finais,
+            lgnd[i]
         );
         escreveArquivoDot("automato", i, automato);
         executaDot("automato", i);
@@ -77,12 +86,18 @@ function toDot(transicao) {
     return novaString;
 }
 
-function constroiAutomato(transicoesDot, iniciais, outros, finais) {
+function constroiAutomato(
+    transicoesDot,
+    iniciais,
+    outros,
+    finais,
+    legendaAtual
+) {
     let str = `digraph finite_state_machine {
     rankdir=LR;
     size="8,5"
     subgraph cluster{
-        label=""
+        label="${legendaAtual}"
         node [shape = point]; "";
         node [shape = circle] ${iniciais.join(" ") + " " + outros.join(" ")};
         node [shape = doublecircle] ${finais.join(" ")};
@@ -192,7 +207,7 @@ function fazGif() {
         "convert",
         [
             "-delay",
-            "100",
+            "300",
             "-loop",
             "0",
             "-dispose",
@@ -204,6 +219,25 @@ function fazGif() {
     );
 }
 
-function legendaAtual(novasTransicoes) {
-    novasTransicoes.map((transicao) => {});
+function legendas(estadoAtual, palavra, objAutomato) {
+    if (palavra === "") {
+        return [];
+    } else {
+        let primeiroChar = palavra.charAt(0);
+        let strRestante = palavra.substring(1);
+        let transicoesPossiveis = Object.keys(objAutomato[estadoAtual]);
+        let estadoDestino;
+        if (transicoesPossiveis.includes(primeiroChar)) {
+            estadoDestino = objAutomato[estadoAtual][primeiroChar];
+        }
+        const arr = legendas(estadoDestino, strRestante, objAutomato);
+        // como estamos usando recursao, eh necessario adicionar o valor sempre no inicio do array
+        // para que a ordem de transicao seja mantida
+        arr.unshift(
+            `Estado Atual: ${estadoAtual} Consumindo: ${primeiroChar} Restante palavra: ${
+                strRestante == "" ? "/" : strRestante
+            }`
+        );
+        return arr;
+    }
 }
