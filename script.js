@@ -1,5 +1,6 @@
 const fs = require("fs");
 const { spawnSync } = require("child_process");
+const LAMBDA = "\u03BB";
 try {
     // le o conteudo do arquivo txt de forma sincrona
     const data = fs.readFileSync("entrada.txt", "UTF-8");
@@ -234,9 +235,9 @@ function legendas(estadoAtual, palavra, objAutomato) {
         // como estamos usando recursao, eh necessario adicionar o valor sempre no inicio do array
         // para que a ordem de transicao seja mantida
         arr.unshift(
-            `Estado Atual: ${estadoAtual} Consumindo: ${primeiroChar} Restante palavra: ${
-                strRestante == "" ? "/" : strRestante
-            }`
+            `[${estadoAtual}/${primeiroChar}, ${
+                strRestante == "" ? LAMBDA : strRestante
+            }]`
         );
         return arr;
     }
