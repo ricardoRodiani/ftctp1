@@ -1,6 +1,8 @@
 const fs = require("fs");
 const { spawnSync } = require("child_process");
 const LAMBDA = "\u03BB";
+const STRINICIAL = "Simulação de AFD/AFN";
+const NOMEARQUIVO = "automato";
 try {
     // le o conteudo do arquivo txt de forma sincrona
     const data = fs.readFileSync("entrada.txt", "UTF-8");
@@ -43,12 +45,11 @@ try {
     let automato = constroiAutomato(
         transicoesDot,
         iniciais,
-        outros,
         finais,
-        "Simulação de AFD/AFN"
+        STRINICIAL
     );
-    escreveArquivoDot("automato", 0, automato);
-    executaDot("automato", 0);
+    escreveArquivoDot(NOMEARQUIVO, 0, automato);
+    executaDot(NOMEARQUIVO, 0);
     let novasTransicoes = consumirPalavra(iniciais[0], palavra, objAutomato);
     let lgnd = legendas(iniciais[0], palavra, objAutomato);
     novasTransicoes = novasTransicoes.map((str) => {
@@ -58,12 +59,11 @@ try {
         automato = constroiAutomato(
             novasTransicoes[i],
             iniciais,
-            outros,
             finais,
             lgnd[i]
         );
-        escreveArquivoDot("automato", i + 1, automato);
-        executaDot("automato", i + 1);
+        escreveArquivoDot(NOMEARQUIVO, i + 1, automato);
+        executaDot(NOMEARQUIVO, i + 1);
     }
     fazGif();
 } catch (err) {
@@ -83,27 +83,27 @@ function toDot(transicao) {
     return novaString;
 }
 
-function constroiAutomato(
-    transicoesDot,
-    iniciais,
-    outros,
-    finais,
-    legendaAtual
-) {
-    let str = `digraph finite_state_machine {
+function constroiAutomato(transicoesDot, iniciais, finais, legendaAtual) {
+    let str = `digraph automato {
     rankdir=LR;
-    size="8,5"
+    size="8,5";
     subgraph cluster{
-        label="${legendaAtual}"
-        node [shape = point]; "";
-        node [shape = circle] ${iniciais.join(" ") + " " + outros.join(" ")};
+        label="${legendaAtual}";
+        node [shape = point] "";
+        node [shape = circle];
         node [shape = doublecircle] ${finais.join(" ")};
-        "" -> ${iniciais.join(" ")}
+        "" -> ${iniciais.join(" ")};
         ${transicoesDot
             .map((linha, i) => {
                 return i > 0 ? "\t\t" + linha : linha;
             })
             .join("\r\n")}
+        ${
+            legendaAtual === STRINICIAL
+                ? ""
+                : legendaAtual.split("/")[0].substring(1) +
+                  "[ style = filled fillcolor = dimgrey ];"
+        } 
     }
 }`;
     return str;
