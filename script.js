@@ -4,10 +4,11 @@ const { spawnSync } = require("child_process");
 const LAMBDA = "\u03BB";
 const STR_INICIAL = "Simulação de AFD/AFN";
 const NOME_ARQUIVO = "automato";
-const DELAY_GIF = process.argv.slice(2)[0];
+const DELAY_GIF =
+    process.argv.slice(2)[0] === undefined ? "300" : process.argv.slice(2)[0];
 const TAMANHO_FIXO_STRING = 3;
 try {
-    if (isNaN(DELAY_GIF) || DELAY_GIF < 0) {
+    if (isNaN(DELAY_GIF)) {
         throw "Argumento inválido!";
     }
     // le o conteudo do arquivo txt de forma sincrona
@@ -186,7 +187,7 @@ function fazGif() {
         "convert",
         [
             "-delay",
-            DELAY_GIF === undefined ? "300" : DELAY_GIF,
+            DELAY_GIF,
             "-loop",
             "0",
             "-dispose",
