@@ -24,7 +24,7 @@ try {
     let transicoesDot = transicoes.map((elemento) => {
         return toDot(elemento);
     });
-    // console.log(transicoesDot);
+    console.log(transicoesDot);
     let outros = lines
         .map((linha) => linha.split(" "))
         .map((elemento) =>
@@ -46,18 +46,15 @@ try {
         iniciais,
         outros,
         finais,
-        ""
+        "Simulação de AFD/AFN"
     );
     escreveArquivoDot("automato", 0, automato);
     executaDot("automato", 0);
     let novasTransicoes = consumirPalavra(iniciais[0], palavra, objAutomato);
     let lgnd = legendas(iniciais[0], palavra, objAutomato);
-    // console.log(lgnd);
-    // console.log(novasTransicoes);
     novasTransicoes = novasTransicoes.map((str) => {
         return addStrModificada(transicoesDot, str);
     });
-    // console.log(novasTransicoes);
     for (let i = 0; i < novasTransicoes.length; i++) {
         automato = constroiAutomato(
             novasTransicoes[i],
@@ -66,8 +63,8 @@ try {
             finais,
             lgnd[i]
         );
-        escreveArquivoDot("automato", i, automato);
-        executaDot("automato", i);
+        escreveArquivoDot("automato", i + 1, automato);
+        executaDot("automato", i + 1);
     }
     fazGif();
 } catch (err) {
@@ -103,20 +100,24 @@ function constroiAutomato(
         node [shape = circle] ${iniciais.join(" ") + " " + outros.join(" ")};
         node [shape = doublecircle] ${finais.join(" ")};
         "" -> ${iniciais.join(" ")}
-        ${transicoesDot.join("\n")}
+        ${transicoesDot
+            .map((linha, i) => {
+                return i > 0 ? "\t\t" + linha : linha;
+            })
+            .join("\r\n")}
     }
 }`;
     return str;
 }
 
 function escreveArquivoDot(str, indice, automato) {
-    fs.writeFileSync(`./automato/${str}${indice + 1}.dot`, automato);
+    fs.writeFileSync(`./automato/${str}${indice}.dot`, automato);
 }
 
 function executaDot(str, indice) {
     spawnSync(
         "dot",
-        ["-Tpng", `${str}${indice + 1}.dot`, "-o", `${str}${indice + 1}.png`],
+        ["-Tpng", `${str}${indice}.dot`, "-o", `${str}${indice}.png`],
         { cwd: "./automato" }
     );
 }
@@ -208,7 +209,7 @@ function fazGif() {
         "convert",
         [
             "-delay",
-            "300",
+            "400",
             "-loop",
             "0",
             "-dispose",

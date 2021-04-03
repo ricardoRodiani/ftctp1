@@ -10,13 +10,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/ricardoRodiani/tp1FTC.git"
+        "url": "git+https://github.com/ricardoRodiani/tp1ftc.git"
     },
     "keywords": [],
     "author": "Ricardo Rodiani da Silva",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/ricardoRodiani/tp1FTC/issues"
+        "url": "https://github.com/ricardoRodiani/tp1ftc/issues"
     },
-    "homepage": "https://github.com/ricardoRodiani/tp1FTC#readme"
+    "homepage": "https://github.com/ricardoRodiani/tp1ftc#readme"
 }
