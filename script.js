@@ -1,9 +1,15 @@
+"use strict";
 const fs = require("fs");
 const { spawnSync } = require("child_process");
 const LAMBDA = "\u03BB";
-const STRINICIAL = "Simulação de AFD/AFN";
-const NOMEARQUIVO = "automato";
+const STR_INICIAL = "Simulação de AFD/AFN";
+const NOME_ARQUIVO = "automato";
+const DELAY_GIF = process.argv.slice(2)[0];
+const TAMANHO_FIXO_STRING = 3;
 try {
+    if (isNaN(DELAY_GIF) || DELAY_GIF < 0) {
+        throw "Argumento inválido!";
+    }
     // le o conteudo do arquivo txt de forma sincrona
     const data = fs.readFileSync("entrada.txt", "UTF-8");
     const lines = data.split(/\r?\n/);
@@ -29,10 +35,10 @@ try {
         transicoesDot,
         iniciais,
         finais,
-        STRINICIAL
+        STR_INICIAL
     );
-    escreveArquivoDot(NOMEARQUIVO, 0, automato);
-    executaDot(NOMEARQUIVO, 0);
+    escreveArquivoDot(NOME_ARQUIVO, 0, automato);
+    executaDot(NOME_ARQUIVO, 0);
     let novasTransicoes = consumirPalavra(
         iniciais[0],
         palavra,
@@ -50,8 +56,8 @@ try {
             finais,
             lgnd[i]
         );
-        escreveArquivoDot(NOMEARQUIVO, i + 1, automato);
-        executaDot(NOMEARQUIVO, i + 1);
+        escreveArquivoDot(NOME_ARQUIVO, i + 1, automato);
+        executaDot(NOME_ARQUIVO, i + 1);
     }
     fazGif();
 } catch (err) {
@@ -83,7 +89,7 @@ function constroiStringDot(transicoesDot, iniciais, finais, legendaAtual) {
             })
             .join("\r\n")}
         ${
-            legendaAtual === STRINICIAL
+            legendaAtual === STR_INICIAL
                 ? ""
                 : legendaAtual.split("/")[0].substring(1) +
                   "[ style = filled fillcolor = dimgrey ];"
@@ -94,7 +100,7 @@ function constroiStringDot(transicoesDot, iniciais, finais, legendaAtual) {
 }
 
 function strComTamanhoFixo(numero) {
-    return new String(numero).padStart(3, "0");
+    return new String(numero).padStart(TAMANHO_FIXO_STRING, "0");
 }
 
 function escreveArquivoDot(str, indice, automato) {
@@ -142,14 +148,17 @@ function consumirPalavra(estadoAtual, palavra, objTransicoes, opcao) {
         } else {
             estadoDestino = estadoDestino[0];
         }
+        // chamada recursiva com o restante da palavra
         const arr = consumirPalavra(
             estadoDestino,
             strRestante,
             objTransicoes,
             opcao
         );
-        // como estamos usando recursao, eh necessario adicionar o valor sempre no inicio do array
-        // para que a ordem de transicao seja mantida
+        /*
+         * Podemos mandar os daods para um arrray de "legendas"
+         * Ou para um array de transicao
+         */
         opcao === "legenda"
             ? arr.unshift(
                   `[${estadoAtual}/${primeiroChar}, ${
@@ -177,7 +186,7 @@ function fazGif() {
         "convert",
         [
             "-delay",
-            "400",
+            DELAY_GIF === undefined ? "300" : DELAY_GIF,
             "-loop",
             "0",
             "-dispose",
