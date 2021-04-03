@@ -116,7 +116,8 @@ function strComTamanhoFixo(numero) {
 function escreveArquivoDot(str, indice, automato) {
     fs.writeFileSync(
         `./automato/${str}${strComTamanhoFixo(indice)}.dot`,
-        automato
+        automato,
+        "UTF-8"
     );
 }
 
