@@ -24,7 +24,6 @@ try {
     let transicoesDot = transicoes.map((elemento) => {
         return toDot(elemento);
     });
-    console.log(transicoesDot);
     let outros = lines
         .map((linha) => linha.split(" "))
         .map((elemento) =>
@@ -110,14 +109,26 @@ function constroiAutomato(
     return str;
 }
 
+function strComTamanhoFixo(numero) {
+    return new String(numero).padStart(3, "0");
+}
+
 function escreveArquivoDot(str, indice, automato) {
-    fs.writeFileSync(`./automato/${str}${indice}.dot`, automato);
+    fs.writeFileSync(
+        `./automato/${str}${strComTamanhoFixo(indice)}.dot`,
+        automato
+    );
 }
 
 function executaDot(str, indice) {
     spawnSync(
         "dot",
-        ["-Tpng", `${str}${indice}.dot`, "-o", `${str}${indice}.png`],
+        [
+            "-Tpng",
+            `${str}${strComTamanhoFixo(indice)}.dot`,
+            "-o",
+            `${str}${strComTamanhoFixo(indice)}.png`,
+        ],
         { cwd: "./automato" }
     );
 }
