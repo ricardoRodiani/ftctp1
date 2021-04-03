@@ -5,4 +5,4 @@ s1 a > s1
 s1 b > s2
 s2 a > s2
 s2 b > s2
-wrd : aabbaa
+wrd : aabb
