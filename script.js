@@ -145,7 +145,7 @@ function consumirPalavra(estadoAtual, palavra, objTransicoes, opcao) {
             .map((obj) => {
                 return obj[2];
             });
-        if (estadoDestino > 1) {
+        if (estadoDestino.length > 1) {
         } else {
             estadoDestino = estadoDestino[0];
         }
