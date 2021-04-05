@@ -97,7 +97,7 @@ function constroiStringDot(dots, iniciais, finais, primeiraExec) {
             })
             .join("\r\n")}
         node [shape = doublecircle]; ${finais.join(" ")};
-        node [shape = circle];
+        node [shape = circle];          
         ${iniciais
             .map((s) => {
                 return `"" -> ${s};`;
