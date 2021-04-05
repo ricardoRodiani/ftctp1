@@ -41,12 +41,13 @@ try {
     escreveArquivoDot(NOME_ARQUIVO, 0, automato);
     executaDot(NOME_ARQUIVO, 0);
     let novasTransicoes = consumirPalavra(
-        iniciais[0],
+        iniciais,
         palavra,
         objTransicoes,
         "transicao"
     );
-    let lgnd = consumirPalavra(iniciais[0], palavra, objTransicoes, "legenda");
+    console.log(novasTransicoes);
+    let lgnd = consumirPalavra(iniciais, palavra, objTransicoes, "legenda");
     novasTransicoes = novasTransicoes.map((str) => {
         return addStrModificada(transicoesDot, str);
     });
@@ -136,22 +137,32 @@ function consumirPalavra(estadoAtual, palavra, objTransicoes, opcao) {
     if (palavra === "") {
         return [];
     } else {
-        let primeiroChar = palavra.charAt(0);
+        let cpy = [...estadoAtual];
+        let prmroEst = cpy.shift();
+        let prmroChar = palavra.charAt(0);
         let strRestante = palavra.substring(1);
-        let estadoDestino = objTransicoes
+        let estDestino = objTransicoes
             .filter((obj) => {
-                return obj[0] === estadoAtual && obj[1] === primeiroChar;
+                return obj[0] === prmroEst && obj[1] === prmroChar;
             })
             .map((obj) => {
                 return obj[2];
             });
-        if (estadoDestino.length > 1) {
-        } else {
-            estadoDestino = estadoDestino[0];
+        if (opcao === "transicao") {
+            console.log({
+                cpy,
+                prmroEst,
+                estDestino,
+                prmroChar,
+                strRestante,
+            });
+        }
+        if (estDestino.length === 0) {
+            throw new Error("Palavra não reconhecida!");
         }
         // chamada recursiva com o restante da palavra
         const arr = consumirPalavra(
-            estadoDestino,
+            estDestino,
             strRestante,
             objTransicoes,
             opcao
@@ -160,14 +171,17 @@ function consumirPalavra(estadoAtual, palavra, objTransicoes, opcao) {
          * Podemos mandar os daods para um arrray de "legendas"
          * Ou para um array de transicao
          */
+        if (cpy.length > 0) {
+            consumirPalavra(cpy, palavra, objTransicoes, opcao);
+        }
         opcao === "legenda"
             ? arr.unshift(
-                  `[${estadoAtual}/${primeiroChar}, ${
+                  `[${prmroEst}/${prmroChar}, ${
                       strRestante == "" ? LAMBDA : strRestante
                   }]`
               )
             : arr.unshift(
-                  `${estadoAtual} -> ${estadoDestino} [ label = "${primeiroChar}" style = bold color = red `
+                  `${prmroEst} -> ${estDestino} [ label = "${prmroChar}" style = bold color = red `
               );
         return arr;
     }
