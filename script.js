@@ -91,10 +91,18 @@ function constroiStringDot(dots, iniciais, finais, primeiraExec) {
     size="8.5";
     subgraph cluster{
         label="${primeiraExec ? STR_INICIAL : legenda}";
-        node [shape = point]; "";
+        ${iniciais
+            .map(() => {
+                return `node [shape = none]; "";`;
+            })
+            .join("\r\n")}
         node [shape = doublecircle]; ${finais.join(" ")};
         node [shape = circle];
-        "" -> ${iniciais.join(" ")};
+        ${iniciais
+            .map((s) => {
+                return `"" -> ${s};`;
+            })
+            .join("\r\n")}
         ${dots.join("\r\n")}
         ${
             primeiraExec
