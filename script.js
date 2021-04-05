@@ -14,50 +14,56 @@ try {
     // le o conteudo do arquivo txt de forma sincrona
     const data = fs.readFileSync("entrada.txt", "UTF-8");
     const lines = data.split(/\r?\n/);
-    let iniciaisFinais = lines.shift().split(";");
-    let iniciais = iniciaisFinais[0].trim().split(" ");
-    let finais = iniciaisFinais[1].trim().split(" ");
-    let palavra = lines.pop().trim().split(":").pop().trim();
+    const iniciaisFinais = lines.shift().split(";");
+    const iniciais = iniciaisFinais[0].trim().split(" ");
+    const finais = iniciaisFinais[1].trim().split(" ");
+    const palavra = lines.pop().trim().split(":").pop().trim();
     // gera um novo array, sem o caracter ">", novo array = ['inicial', 'simbolo', 'destino']
-    let transicoes = lines
+    const transicoes = lines
         .map((linha) => linha.split(" "))
         .map((elemento) =>
             elemento.filter((elemento, indice, proprio) => {
                 return indice != 2;
             })
         );
-    let objTransicoes = transicoes.map((linha) => {
+    const objTransicoes = transicoes.map((linha) => {
         return { ...linha };
     });
-    let transicoesDot = transicoes.map((elemento) => {
+    const transicoesDot = transicoes.map((elemento) => {
         return toDot(elemento);
     });
-    let automato = constroiStringDot(
-        transicoesDot,
-        iniciais,
-        finais,
-        STR_INICIAL
-    );
+    let automato = constroiStringDot(transicoesDot, iniciais, finais, true);
     escreveArquivoDot(NOME_ARQUIVO, 0, automato);
     executaDot(NOME_ARQUIVO, 0);
-    let novasTransicoes = consumirPalavra(
-        iniciais,
-        palavra,
-        objTransicoes,
-        "transicao"
-    );
-    console.log(novasTransicoes);
-    let lgnd = consumirPalavra(iniciais, palavra, objTransicoes, "legenda");
-    novasTransicoes = novasTransicoes.map((str) => {
-        return addStrModificada(transicoesDot, str);
+    global.novasTransicoes = [];
+    consumirPalavra(iniciais, palavra, objTransicoes, "transicao");
+    const arrayConsumo = novasTransicoes.map((obj) => {
+        const estIni = obj.prmroEst;
+        const estFin = obj.estDestino[0];
+        const sim = obj.prmroChar;
+        const rest = obj.strRestante;
+        const indice = objTransicoes.findIndex((x) => {
+            return x[0] === estIni && x[1] === sim && x[2] === estFin;
+        });
+        return {
+            transicao: `${estIni} -> ${estFin} [ label = "${sim}" style = bold color = red ]`,
+            legenda: `[${estIni}/${sim}, ${rest === "" ? LAMBDA : rest}]`,
+            indice: indice,
+        };
     });
-    for (let i = 0; i < novasTransicoes.length; i++) {
-        automato = constroiStringDot(
-            novasTransicoes[i],
-            iniciais,
-            finais,
-            lgnd[i]
-        );
+    let newDots = [];
+    for (let i = 0; i < arrayConsumo.length; i++) {
+        let changeIndice = arrayConsumo[i].indice;
+        let newTransicao = arrayConsumo[i].transicao;
+        let legenda = arrayConsumo[i].legenda;
+        let copiaDots = [...transicoesDot];
+        copiaDots[changeIndice] = newTransicao;
+        let novoArray = [...copiaDots];
+        novoArray.push(legenda);
+        newDots.push(novoArray);
+    }
+    for (let i = 0; i < newDots.length; i++) {
+        automato = constroiStringDot(newDots[i], iniciais, finais, false);
         escreveArquivoDot(NOME_ARQUIVO, i + 1, automato);
         executaDot(NOME_ARQUIVO, i + 1);
     }
@@ -71,30 +77,30 @@ function toDot(transicao) {
     let simbolo = transicao[1];
     transicao[1] = "->";
     novaString += transicao.join(" ");
-    novaString += ` [ label = "${simbolo}"];`;
+    novaString += ` [ label = "${simbolo}" ];`;
     return novaString;
 }
 
-function constroiStringDot(transicoesDot, iniciais, finais, legendaAtual) {
-    let str = `digraph automato {
+function constroiStringDot(dots, iniciais, finais, primeiraExec) {
+    let legenda = "";
+    if (!primeiraExec) {
+        legenda = dots.pop();
+    }
+    const str = `digraph automato {
     rankdir=LR;
-    size="8,5";
+    size="8.5";
     subgraph cluster{
-        label="${legendaAtual}";
-        node [shape = point] "";
+        label="${primeiraExec ? STR_INICIAL : legenda}";
+        node [shape = point]; "";
+        node [shape = doublecircle]; ${finais.join(" ")};
         node [shape = circle];
-        node [shape = doublecircle] ${finais.join(" ")};
         "" -> ${iniciais.join(" ")};
-        ${transicoesDot
-            .map((linha, i) => {
-                return i > 0 ? "\t\t" + linha : linha;
-            })
-            .join("\r\n")}
+        ${dots.join("\r\n")}
         ${
-            legendaAtual === STR_INICIAL
+            primeiraExec
                 ? ""
-                : legendaAtual.split("/")[0].substring(1) +
-                  "[ style = filled fillcolor = dimgrey ];"
+                : legenda.split("/")[0].substring(1) +
+                  " [ style = filled fillcolor = dimgrey ];"
         } 
     }
 }`;
@@ -148,25 +154,18 @@ function consumirPalavra(estadoAtual, palavra, objTransicoes, opcao) {
             .map((obj) => {
                 return obj[2];
             });
-        if (opcao === "transicao") {
-            console.log({
-                cpy,
-                prmroEst,
-                estDestino,
-                prmroChar,
-                strRestante,
-            });
-        }
         if (estDestino.length === 0) {
             throw new Error("Palavra não reconhecida!");
         }
         // chamada recursiva com o restante da palavra
-        const arr = consumirPalavra(
+        novasTransicoes.push({
+            cpy,
+            prmroEst,
             estDestino,
+            prmroChar,
             strRestante,
-            objTransicoes,
-            opcao
-        );
+        });
+        consumirPalavra(estDestino, strRestante, objTransicoes, opcao);
         /*
          * Podemos mandar os daods para um arrray de "legendas"
          * Ou para um array de transicao
@@ -174,26 +173,8 @@ function consumirPalavra(estadoAtual, palavra, objTransicoes, opcao) {
         if (cpy.length > 0) {
             consumirPalavra(cpy, palavra, objTransicoes, opcao);
         }
-        opcao === "legenda"
-            ? arr.unshift(
-                  `[${prmroEst}/${prmroChar}, ${
-                      strRestante == "" ? LAMBDA : strRestante
-                  }]`
-              )
-            : arr.unshift(
-                  `${prmroEst} -> ${estDestino} [ label = "${prmroChar}" style = bold color = red `
-              );
-        return arr;
+        return;
     }
-}
-
-function addStrModificada(transicoesDot, strModificada) {
-    let matchStr = strModificada
-        .substring(0, strModificada.indexOf("style"))
-        .trim();
-    return transicoesDot.map((linha) => {
-        return linha.replace(matchStr, strModificada);
-    });
 }
 
 function fazGif() {
