@@ -8,6 +8,6 @@
 
 > ### Comandos possiveis
 >
-> npm run start [tempo_ms]
+> npm run start [delay_tempo_ms]
 >
 > npm run clean
