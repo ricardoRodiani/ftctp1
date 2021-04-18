@@ -37,6 +37,11 @@ try {
     executaDot(NOME_ARQUIVO, 0);
     global.novasTransicoes = [];
     consumirPalavra(iniciais, palavra, objTransicoes, "transicao");
+    /*
+     * Para cada transicao
+     * criamos um array com a transicao dot e sua respectiva
+     * legenda
+     */
     const arrayConsumo = novasTransicoes.map((obj) => {
         const estIni = obj.prmroEst;
         const estFin = obj.estDestino[0];
@@ -52,6 +57,7 @@ try {
         };
     });
     let newDots = [];
+    // gera as novas transicoes em sua ordem que serao criadas
     for (let i = 0; i < arrayConsumo.length; i++) {
         let changeIndice = arrayConsumo[i].indice;
         let newTransicao = arrayConsumo[i].transicao;
@@ -62,6 +68,7 @@ try {
         novoArray.push(legenda);
         newDots.push(novoArray);
     }
+    // cria os arquivos seguindo a ordem do array de novas transicoes
     for (let i = 0; i < newDots.length; i++) {
         automato = constroiStringDot(newDots[i], iniciais, finais, false);
         escreveArquivoDot(NOME_ARQUIVO, i + 1, automato);
@@ -80,7 +87,9 @@ function toDot(transicao) {
     novaString += ` [ label = "${simbolo}" ];`;
     return novaString;
 }
-
+/*
+ * Retorna um nova String seguindo o template do formato Dot
+ */
 function constroiStringDot(dots, iniciais, finais, primeiraExec) {
     let legenda = "";
     if (!primeiraExec) {
@@ -115,6 +124,7 @@ function constroiStringDot(dots, iniciais, finais, primeiraExec) {
     return str;
 }
 
+// deixa o titulo da forma leading zeros "0XX"
 function strComTamanhoFixo(numero) {
     return new String(numero).padStart(TAMANHO_FIXO_STRING, "0");
 }
@@ -163,7 +173,7 @@ function consumirPalavra(estadoAtual, palavra, objTransicoes, opcao) {
                 return obj[2];
             });
         if (estDestino.length === 0) {
-            throw new Error("Palavra não reconhecida!");
+            return;
         }
         // chamada recursiva com o restante da palavra
         novasTransicoes.push({
