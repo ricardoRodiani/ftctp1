@@ -4,7 +4,7 @@
 
 ### Requisitos
 
--   [NodeJS](https://nodejs.org/en/download/package-manager/)
+-   [NodeJS e NPM](https://nodejs.org/en/download/package-manager/)
 -   [Graphviz](https://graphviz.org/download/)
 -   [ImageMagick](https://imagemagick.org/script/download.php)
 
